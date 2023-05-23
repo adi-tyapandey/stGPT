@@ -1,0 +1,12 @@
+streamlit
+langchain
+streamlit-chat
+streamlit-extras
+pypdf4
+python-dotenv
+tiktoken
+faiss-cpu
+chromadb
+openai
+pdfplumber
+google-cloud-storage
