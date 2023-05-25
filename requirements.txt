@@ -10,5 +10,4 @@ python-dotenv
 gpt4free
 pdf2image
 sentence_transformers
-protobuf
 poppler-utils
