@@ -2,7 +2,6 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 from langchain.schema import HumanMessage, AIMessage
-from google.cloud import storage as gcs_storage
 
 import streamlit as st
 from streamlit_extras.colored_header import colored_header
@@ -55,38 +54,15 @@ class CustomLLM(LLM):
         """Get the identifying parameters."""
         return {}
 
-def download_folder_from_storage(source_folder_path, local_folder_path):
-    gcs_client = gcs_storage.Client.from_service_account_json('serviceAccountKey.json')
-    bucket_name = 'pdfgpt-2fdd3.appspot.com'
-    bucket = gcs_client.get_bucket(bucket_name)
 
-    if not source_folder_path.endswith('/'):
-        source_folder_path += '/'
-
-    blobs = bucket.list_blobs(prefix=source_folder_path)
-
-    for blob in blobs:
-        relative_file_path = blob.name[len(source_folder_path):]
-        destination_file_path = os.path.join(local_folder_path, relative_file_path)
-
-        if os.path.exists(destination_file_path):
-            continue
-
-        os.makedirs(os.path.dirname(destination_file_path), exist_ok=True)
-        blob.download_to_filename(destination_file_path)
-
-def list_folders_in_storage():
-    gcs_client = gcs_storage.Client.from_service_account_json('serviceAccountKey.json')
-    bucket_name = 'pdfgpt-2fdd3.appspot.com'
-    bucket = gcs_client.get_bucket(bucket_name)
-    blobs = bucket.list_blobs()
-    folder_names = set()
-    for blob in blobs:
-        folder_path = os.path.dirname(blob.name)
-        if '/' in folder_path:
-            folder_name = folder_path.split('/')[0]
-            folder_names.add(folder_name)
-    return folder_names
+def list_folders_in_path():
+    folder_path = os.path.join(os.getcwd(), "pdfEmbeds")
+    if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
+        print("Invalid folder path!")
+        return []
+    
+    folder_list = [f for f in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, f))]
+    return folder_list
 
 def make_chain(selected_folder):
     global vector_store
@@ -96,7 +72,7 @@ def make_chain(selected_folder):
     vector_store = Chroma(
         collection_name=selected_folder,
         embedding_function=embedding,
-        persist_directory= f"{os.getcwd()}/{selected_folder}/chroma",
+        persist_directory= f"{os.getcwd()}/pdfEmbeds/{selected_folder}/chroma",
     )
 
     return ConversationalRetrievalChain.from_llm(
@@ -107,7 +83,6 @@ def make_chain(selected_folder):
     )
 
 def start_chain(selected_folder):
-  download_folder_from_storage(selected_folder, f'{os.getcwd()}/{selected_folder}')
   chain = make_chain(selected_folder)
   return chain
 
@@ -119,6 +94,13 @@ def display_pdf(pdf_path, page_number):
     st.error("Failed to convert the specified page.")
 
 st.set_page_config(page_title="Chat", page_icon="📕")
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 load_dotenv()
 if "chat_history" not in st.session_state:
   st.session_state["chat_history"] = []
@@ -127,7 +109,7 @@ colored_header(
     description="Explore your documents using the sidebar",
     color_name="red-70",
 )
-folders = list_folders_in_storage()
+folders = list_folders_in_path()
 selected_folder = st.sidebar.selectbox("Select a Document 📕", list(folders))
 if selected_folder:
   st.session_state["chat_history"] = []
@@ -151,5 +133,5 @@ if selected_folder:
         with col1:
           st.write(f"**:red[Page {page_number}]:** {page_content}")
         with col2:
-          pdf_path = f"{os.getcwd()}/{selected_folder}/{selected_folder}.pdf"
+          pdf_path = f"{os.getcwd()}/pdfEmbeds/{selected_folder}/{selected_folder}.pdf"
           display_pdf(pdf_path, page_number)
