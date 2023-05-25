@@ -14,3 +14,4 @@ gpt4free
 pdf2image
 sentence_transformers
 poppler-utils
+protobuf
