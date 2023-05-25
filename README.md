@@ -18,5 +18,5 @@ This GitHub repository contains code for an interactive chat application for exp
 2) langchain library
 3) Google Cloud Storage (GCS)
 4) Google Search API
-5) OpenAI GPT-3.5 Turbo
+5) LLM
 6) Streamlit framework UI
