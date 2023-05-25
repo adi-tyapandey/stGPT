@@ -96,7 +96,7 @@ def make_chain(selected_folder):
     vector_store = Chroma(
         collection_name=selected_folder,
         embedding_function=embedding,
-        persist_directory= f"/content/{selected_folder}/chroma",
+        persist_directory= f"{os.getcwd()}/{selected_folder}/chroma",
     )
 
     return ConversationalRetrievalChain.from_llm(
@@ -107,7 +107,7 @@ def make_chain(selected_folder):
     )
 
 def start_chain(selected_folder):
-  download_folder_from_storage(selected_folder, f'/content/{selected_folder}')
+  download_folder_from_storage(selected_folder, f'{os.getcwd()}/{selected_folder}')
   chain = make_chain(selected_folder)
   return chain
 
@@ -151,5 +151,5 @@ if selected_folder:
         with col1:
           st.write(f"**:red[Page {page_number}]:** {page_content}")
         with col2:
-          pdf_path = f"/content/{selected_folder}/{selected_folder}.pdf"
+          pdf_path = f"{os.getcwd()}/{selected_folder}/{selected_folder}.pdf"
           display_pdf(pdf_path, page_number)
