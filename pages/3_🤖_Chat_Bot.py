@@ -15,6 +15,13 @@ if "history" not in st.session_state:
     st.session_state.history = []
 
 st.set_page_config(page_title="Chat", page_icon="🤖")
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 colored_header(
     label="Chat Bot 👱🏽",
     description="Optimized for conversation",
