@@ -5,7 +5,6 @@ langchain
 chromadb
 pypdf4
 pdfplumber
-google-cloud-storage
 python-dotenv
 gpt4free
 pdf2image
