@@ -15,26 +15,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 
-from google.cloud import storage as gcs_storage
-
-def upload_folder_to_storage(local_folder_path, destination_folder_path):
-    # Initialize the Google Cloud Storage client
-    gcs_client = gcs_storage.Client.from_service_account_json('serviceAccountKey.json')
-    bucket_name = 'pdfgpt-2fdd3.appspot.com'
-    bucket = gcs_client.get_bucket(bucket_name)
-
-    for root, dirs, files in os.walk(local_folder_path):
-        for file in files:
-            local_file_path = os.path.join(root, file)
-            relative_file_path = os.path.relpath(local_file_path, local_folder_path)
-            destination_file_path = os.path.join(destination_folder_path, relative_file_path)
-
-            print(f"Local file path: {local_file_path}")
-            print(f"Destination file path: {destination_file_path}")
-
-            blob = bucket.blob(destination_file_path)
-            blob.upload_from_filename(local_file_path)
-
 def extract_metadata_from_pdf(file_path: str) -> dict:
     with open(file_path, "rb") as pdf_file:
         reader = PyPDF4.PdfFileReader(pdf_file)
@@ -119,6 +99,15 @@ def text_to_docs(text: List[str], metadata: Dict[str, str]) -> List[Document]:
     return doc_chunks
 
 st.set_page_config(page_title="Upload", page_icon="🗃️")
+
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+
 load_dotenv()
 colored_header(
     label="Upload your PDF 🗃️",
@@ -131,7 +120,7 @@ col1, col2 = st.columns(2)
 with col1:
   pdf_file = st.file_uploader("Interact with your documents with the power of AI", type="pdf")
   if pdf_file is not None:
-    file_path = os.path.join(os.getcwd(), pdf_file.name)
+    file_path = f"{os.getcwd()}/{pdf_file.name}"
     with open(file_path, "wb") as f:
         f.write(pdf_file.read())
 
@@ -147,13 +136,12 @@ with col1:
       document_chunks,
       embeddings,
       collection_name=os.path.splitext(pdf_file.name)[0],
-      persist_directory= f"{os.path.join(os.getcwd(), os.path.splitext(pdf_file.name)[0])}/chroma",
+      persist_directory= f"{os.getcwd()}/pdfEmbeds/{os.path.splitext(pdf_file.name)[0]}/chroma",
     )
 
     progress_bar.empty()
     vector_store.persist()
-    shutil.copy(file_path, f"{os.path.join(os.getcwd(), os.path.splitext(pdf_file.name)[0])}/")
-    upload_folder_to_storage(f"{os.path.join(os.getcwd(), os.path.splitext(pdf_file.name)[0])}/", os.path.splitext(pdf_file.name)[0])
+    shutil.copy(file_path, f"{os.getcwd()}/pdfEmbeds/{os.path.splitext(pdf_file.name)[0]}/")
     st.balloons()
     st.write(f':green[{pdf_file.name} processed successfully!]')
     st.write(f'Navigate to 📕PDF Chat to ask a Question!')
