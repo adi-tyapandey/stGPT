@@ -131,14 +131,13 @@ col1, col2 = st.columns(2)
 with col1:
   pdf_file = st.file_uploader("Interact with your documents with the power of AI", type="pdf")
   if pdf_file is not None:
-    file_path = os.path.join('/content/', pdf_file.name)
+    file_path = os.path.join(os.getcwd(), pdf_file.name)
     with open(file_path, "wb") as f:
         f.write(pdf_file.read())
-    path = f'/content/{pdf_file.name}'
 
     progress_bar = st.progress(0)
 
-    raw_pages, metadata = parse_pdf(path)
+    raw_pages, metadata = parse_pdf(file_path)
     cleaning_functions = [merge_hyphenated_words, fix_newlines, remove_multiple_newlines,]
     cleaned_text_pdf = clean_text(raw_pages, cleaning_functions)
     document_chunks = text_to_docs(cleaned_text_pdf, metadata)
@@ -148,16 +147,16 @@ with col1:
       document_chunks,
       embeddings,
       collection_name=os.path.splitext(pdf_file.name)[0],
-      persist_directory= f"/content/{os.path.splitext(pdf_file.name)[0]}/chroma",
+      persist_directory= f"{os.path.join(os.getcwd(), os.path.splitext(pdf_file.name)[0])}/chroma",
     )
 
     progress_bar.empty()
     vector_store.persist()
-    shutil.copy(path, f"/content/{os.path.splitext(pdf_file.name)[0]}/")
-    upload_folder_to_storage(f"/content/{os.path.splitext(pdf_file.name)[0]}/", os.path.splitext(pdf_file.name)[0])
+    shutil.copy(file_path, f"{os.path.join(os.getcwd(), os.path.splitext(pdf_file.name)[0])}/")
+    upload_folder_to_storage(f"{os.path.join(os.getcwd(), os.path.splitext(pdf_file.name)[0])}/", os.path.splitext(pdf_file.name)[0])
     st.balloons()
     st.write(f':green[{pdf_file.name} processed successfully!]')
-    st.write(f'Navigate to the 📕PDF Chat to ask a Question!')
+    st.write(f'Navigate to 📕PDF Chat to ask a Question!')
 
 with col2:
   st.markdown(
