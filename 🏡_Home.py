@@ -6,6 +6,14 @@ st.set_page_config(
     page_icon="🤖",
 )
 
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+
 colored_header(
     label="Interactive AI Notebook 📚",
     description="Navigate to 🗃️Upload PDF (to upload your PDF) || Navigate to 📕PDF Chat (to talk to your PDF)",
